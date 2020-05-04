@@ -134,6 +134,25 @@ class ToTensor(object):
         return {'image': torch.from_numpy(image),
                 'landmarks': torch.from_numpy(landmarks)}
 
+# Helper function to show a batch
+def show_landmarks_batch(sample_batched):
+    """Show image with landmarks for a batch of samples."""
+    images_batch, landmarks_batch = \
+            sample_batched['image'], sample_batched['landmarks']
+    batch_size = len(images_batch)
+    im_size = images_batch.size(2)
+    grid_border_size = 2
+
+    grid = utils.make_grid(images_batch)
+    plt.imshow(grid.numpy().transpose((1, 2, 0)))
+
+    for i in range(batch_size):
+        plt.scatter(landmarks_batch[i, :, 0].numpy() + i * im_size + (i + 1) * grid_border_size,
+                    landmarks_batch[i, :, 1].numpy() + grid_border_size,
+                    s=10, marker='.', c='r')
+
+        plt.title('Batch from dataloader')
+
 if __name__ == '__main__':
     # warnings.filterwarnings("ignore")
     # plt.ion()   # interactive mode
@@ -222,4 +241,27 @@ if __name__ == '__main__':
         print(i, sample['image'].size(), sample['landmarks'].size())
 
         if i == 3:
+            break
+
+        
+    """
+    DataLoader
+    批量处理数据 batch_size
+    打乱数据 shuffle
+    使用multiprocessing工作程序并行加载数据。 num_workers
+    """
+    dataloader = DataLoader(transformed_dataset, batch_size=4,
+                        shuffle=True, num_workers=4)
+
+    for i_batch, sample_batched in enumerate(dataloader):
+        print(i_batch, sample_batched['image'].size(),
+            sample_batched['landmarks'].size())
+
+        # observe 4th batch and stop.
+        if i_batch == 3:
+            plt.figure()
+            show_landmarks_batch(sample_batched)
+            plt.axis('off')
+            plt.ioff()
+            plt.show()
             break
